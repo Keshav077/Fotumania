@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "775986908101",
+    "firebase_url": "https://fotumania-33638-default-rtdb.firebaseio.com",
+    "project_id": "fotumania-33638",
+    "storage_bucket": "fotumania-33638.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:775986908101:android:48f090ba3e51acfb0f99ac",
+        "android_client_info": {
+          "package_name": "com.example.fotumania"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "775986908101-n9m6if80e8gp4b4q7r706gcfvh025r14.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDSPFay9RWsTAm7rxLWgmne4f13B1A2Cws"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "775986908101-n9m6if80e8gp4b4q7r706gcfvh025r14.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
