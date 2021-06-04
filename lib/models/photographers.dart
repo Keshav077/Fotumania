@@ -4,20 +4,18 @@ enum Orders { Request, Accepted, Completed }
 
 class Photographers {
   final String id;
+  final String photographerId;
   double ratings;
-  String pricePerHour;
   List<String> specialization;
-  Map<Orders, List<String>> contracts = {
-    Orders.Request: [],
-    Orders.Accepted: [],
-    Orders.Completed: []
-  };
+  bool isVerified;
+  Map<Orders, List<String>> contracts;
 
   Photographers({
     @required this.id,
+    this.photographerId,
     this.specialization,
     this.ratings,
-    this.pricePerHour,
     this.contracts,
+    this.isVerified = false,
   });
 }

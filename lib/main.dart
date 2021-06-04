@@ -1,34 +1,28 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:fotumania/models/user_info.dart';
-import 'package:fotumania/screens/landing_screen.dart';
-import 'package:fotumania/screens/order_status.dart';
-import 'package:fotumania/screens/recent_orders.dart';
-import 'package:provider/provider.dart';
-import 'package:animated_splash_screen/animated_splash_screen.dart';
-import 'package:page_transition/page_transition.dart';
 
+import 'package:provider/provider.dart';
+
+import 'package:firebase_core/firebase_core.dart';
+
+import './screens/order_status.dart';
+import './screens/recent_orders.dart';
+import './screens/splash_screen.dart';
 import './screens/admin_screen.dart';
 import './screens/edit_service.dart';
 import './screens/photographer_screen.dart';
 import './screens/service_classes.dart';
 import './screens/service_details_screen.dart';
 import './screens/sign_in.dart';
+import './screens/home_screen.dart';
 
 import 'package:sizer/sizer.dart';
 
-import 'package:fotumania/providers/order_provider.dart';
-import 'package:fotumania/providers/photographers_provider.dart';
-
-import 'package:fotumania/providers/items_provider.dart';
-import 'package:fotumania/providers/user_provider.dart';
-
-import 'package:fotumania/screens/home_screen.dart';
-
-import 'package:fotumania/providers/service_provider.dart';
-
-import 'package:firebase_core/firebase_core.dart';
+import './providers/order_provider.dart';
+import './providers/photographers_provider.dart';
+import './providers/items_provider.dart';
+import './providers/user_provider.dart';
+import './providers/service_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -76,7 +70,6 @@ class MyApp extends StatelessWidget {
                   buttonColor: Colors.blue,
                   primaryColorLight: Colors.blue[200],
                   iconTheme: IconThemeData(color: Colors.white),
-                  accentColor: Colors.grey,
                   fontFamily: "Quicksand",
                   textTheme: TextTheme(
                     headline1: TextStyle(),
@@ -89,7 +82,6 @@ class MyApp extends StatelessWidget {
                     headline5: TextStyle(),
                     headline6: TextStyle(
                       color: Colors.white,
-                      fontWeight: FontWeight.bold,
                     ),
                     subtitle1: TextStyle(
                       color: Colors.white,
@@ -112,52 +104,14 @@ class MyApp extends StatelessWidget {
                     ),
                   ),
                 ),
-                home: AnimatedSplashScreen(
-                  backgroundColor: Colors.blue,
-                  splashIconSize: constraints.maxHeight * 0.25,
-                  splash: Container(
-                    decoration: BoxDecoration(
-                      boxShadow: [
-                        BoxShadow(
-                          blurRadius: 5,
-                          color: Colors.black26,
-                          offset: Offset(-4, 4),
-                          spreadRadius: 7,
-                        ),
-                        BoxShadow(
-                          blurRadius: 5,
-                          color: Colors.white30,
-                          offset: Offset(4, -4),
-                          spreadRadius: 5,
-                        ),
-                      ],
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      image: DecorationImage(
-                        image: AssetImage("assets/images/Logo.png"),
-                      ),
-                    ),
-                  ),
-                  nextScreen: StreamBuilder(
-                      stream: FirebaseAuth.instance.authStateChanges(),
-                      builder: (ctx, userSnapshot) {
-                        if (userSnapshot.hasData &&
-                            FirebaseAuth.instance.currentUser.emailVerified) {
-                          return NewHomeScreen();
-                        }
-                        return SignIn(UserType.Customer);
-                      }),
-                  animationDuration: Duration(milliseconds: 1500),
-                  curve: Curves.decelerate,
-                  splashTransition: SplashTransition.sizeTransition,
-                  pageTransitionType: PageTransitionType.leftToRightWithFade,
-                ),
+                home: SplashScreen(),
                 routes: {
                   NewHomeScreen.routeName: (ctx) => NewHomeScreen(),
                   PhotographersScreen.routeName: (ctx) => PhotographersScreen(),
                   ServiceDetails.routeName: (ctx) => ServiceDetails(),
                   AdminHome.routeName: (ctx) => AdminHome(),
                   EditService.routeName: (ctx) => EditService(),
+                  SignIn.routeName: (ctx) => SignIn(),
                   ServiceClassesScreen.routeName: (ctx) =>
                       ServiceClassesScreen(),
                   OrderStatusScreen.routeName: (ctx) => OrderStatusScreen(),

@@ -8,7 +8,7 @@ class OrderInfo {
   final Map<String, dynamic> orderInfo;
   DateTime orderDate;
   OrderStatus orderStatus = OrderStatus.Ordered;
-  String providerId = "1";
+  String providerId;
 
   OrderInfo({
     @required this.orderId,
@@ -16,5 +16,6 @@ class OrderInfo {
     @required this.userId,
     this.orderStatus,
     this.orderDate,
+    this.providerId,
   });
 }

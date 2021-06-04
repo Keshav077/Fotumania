@@ -17,7 +17,7 @@ class ServicesIcons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color iconColor = Theme.of(context).accentColor,
+    final Color iconColor = Colors.grey,
         iconActiveColor = Theme.of(context).primaryColor;
     return Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
       ...services.map((service) {

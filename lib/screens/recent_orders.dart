@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fotumania/providers/photographers_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
@@ -17,6 +18,7 @@ class _RecentOrdersScreenState extends State<RecentOrdersScreen> {
   OrderProvider orderProvider;
   UserProvider userProvider;
   LinearGradient gradient;
+  PhotographersProvider photographersProvider;
   Size mqs;
   @override
   void didChangeDependencies() async {
@@ -24,6 +26,8 @@ class _RecentOrdersScreenState extends State<RecentOrdersScreen> {
     if (!_isInit) {
       orderProvider = Provider.of<OrderProvider>(context, listen: false);
       userProvider = Provider.of<UserProvider>(context, listen: false);
+      photographersProvider =
+          Provider.of<PhotographersProvider>(context, listen: false);
       mqs = MediaQuery.of(context).size;
       gradient = LinearGradient(
         colors: [
@@ -37,6 +41,7 @@ class _RecentOrdersScreenState extends State<RecentOrdersScreen> {
         _isLoading = true;
       });
       await orderProvider.fetchAndSetOrders();
+      await photographersProvider.fetchAllPhotographers();
       setState(() {
         _isLoading = false;
       });
@@ -139,7 +144,7 @@ class _RecentOrdersScreenState extends State<RecentOrdersScreen> {
                                       children: [
                                         Text("Price: "),
                                         Text(
-                                          e.orderInfo["Price"],
+                                          e.orderInfo["price"],
                                         ),
                                       ],
                                     ),
@@ -157,7 +162,11 @@ class _RecentOrdersScreenState extends State<RecentOrdersScreen> {
                                         Spacer(),
                                         RatingBar.builder(
                                           itemSize: 30,
-                                          initialRating: 3,
+                                          initialRating:
+                                              e.orderInfo['ratings'] == null
+                                                  ? 3
+                                                  : double.parse(
+                                                      e.orderInfo['ratings']),
                                           minRating: 1,
                                           ignoreGestures:
                                               e.orderInfo['ratings'] == null
@@ -170,10 +179,22 @@ class _RecentOrdersScreenState extends State<RecentOrdersScreen> {
                                               horizontal: 4.0),
                                           itemBuilder: (context, _) => Icon(
                                             Icons.star,
-                                            color: Colors.amber,
+                                            color:
+                                                e.orderInfo['ratings'] == null
+                                                    ? Colors.amber
+                                                    : Colors.white,
                                           ),
-                                          onRatingUpdate: (rating) {
-                                            orderProvider.setRatings(
+                                          onRatingUpdate: (rating) async {
+                                            // print(e.providerId);
+
+                                            await photographersProvider
+                                                .updateRatings(
+                                                    photographersProvider
+                                                        .getPhotographerWithId(
+                                                            e.providerId)
+                                                        .photographerId,
+                                                    rating);
+                                            await orderProvider.setRatings(
                                                 e.orderId, e.userId, rating);
                                             setState(() {});
                                           },

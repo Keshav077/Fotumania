@@ -13,7 +13,8 @@ class ServiceProvider with ChangeNotifier {
     ),
     ServiceData(
       serviceName: "PACKAGES",
-      serviceContent: "Packages Content",
+      serviceContent:
+          "Wanna make memories of each and every element in the event, leave it all to us with out pacakges we'll cover every part of the event.",
       serviceId: "002",
       icon: Icons.videocam_rounded,
       widthRatio: 0.98,

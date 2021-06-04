@@ -1,3 +1,5 @@
+import 'package:auto_size_text/auto_size_text.dart';
+import 'package:firebase_auth/firebase_auth.dart' hide UserInfo;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -27,6 +29,8 @@ class _NewHomeScreenState extends State<NewHomeScreen> {
 
   bool _isInit = false;
   var _isLoading = false;
+
+  bool _showLoading = false;
 
   @override
   void didChangeDependencies() {
@@ -70,12 +74,11 @@ class _NewHomeScreenState extends State<NewHomeScreen> {
         : mqs.height > 800
             ? 35
             : 25;
-    return Scaffold(
-      drawer: MainDrawer(),
-      body: Builder(
-        builder: (context) {
-          return _isLoading
-              ? Container(
+    return !FirebaseAuth.instance.currentUser.emailVerified
+        ? Scaffold(
+            body: Center(
+              child: Container(
+                  width: mqs.width,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
@@ -86,132 +89,194 @@ class _NewHomeScreenState extends State<NewHomeScreen> {
                       end: Alignment.bottomLeft,
                     ),
                   ),
-                  child: Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                )
-              : Stack(
-                  alignment: Alignment.bottomCenter,
-                  children: [
-                    CustomAppBar(
-                      // openWishList: openWishList,
-                      goToProfile: goToProfile,
-                    ),
-                    Container(
-                      height: mqs.height > 800
-                          ? mqs.height * 0.75
-                          : mqs.height * 0.73,
-                      width: mqs.width,
-                      alignment: Alignment.topCenter,
-                      decoration: BoxDecoration(
-                        boxShadow: [
-                          BoxShadow(
-                            blurRadius: 15,
-                            color: Colors.black12,
-                            offset: Offset(-2, -2),
-                            spreadRadius: 2,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text("Please Verify Your Email",
+                          style: Theme.of(context).textTheme.headline6),
+                      SizedBox(height: 5),
+                      Text(FirebaseAuth.instance.currentUser.email,
+                          style: Theme.of(context).textTheme.subtitle1),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ElevatedButton(
+                            child: Text("Resend"),
+                            onPressed: () async {
+                              setState(() {
+                                _showLoading = true;
+                              });
+                              await FirebaseAuth.instance.currentUser
+                                  .sendEmailVerification();
+                              setState(() {
+                                _showLoading = false;
+                              });
+                            },
+                          ),
+                          SizedBox(
+                            width: 10,
+                          ),
+                          ElevatedButton(
+                            child: Text("Refresh"),
+                            onPressed: () async {
+                              await FirebaseAuth.instance.currentUser.reload();
+                              setState(() {});
+                            },
                           ),
                         ],
-                        color: Colors.white,
-                        borderRadius: BorderRadius.only(
-                          topRight: Radius.circular(50),
-                          topLeft: Radius.circular(50),
-                        ),
                       ),
-                      child: SingleChildScrollView(
-                        child: Column(
-                          children: [
-                            Container(
-                              height: (mqs.height > 800
-                                      ? mqs.height * 0.75
-                                      : mqs.height * 0.73) *
-                                  0.1,
-                              child: ServicesIcons(
-                                selectedItem: _selectedItem,
-                                setSelectedItem: setSelectedItem,
-                                iconSize: iconSize,
+                      if (_showLoading) CircularProgressIndicator(),
+                    ],
+                  )),
+            ),
+          )
+        : Scaffold(
+            drawer: MainDrawer(),
+            body: Builder(
+              builder: (context) {
+                return _isLoading
+                    ? Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Theme.of(context).primaryColor,
+                              Theme.of(context).primaryColorDark
+                            ],
+                            begin: Alignment.topRight,
+                            end: Alignment.bottomLeft,
+                          ),
+                        ),
+                        child: Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      )
+                    : Stack(
+                        alignment: Alignment.bottomCenter,
+                        children: [
+                          CustomAppBar(
+                            // openWishList: openWishList,
+                            goToProfile: goToProfile,
+                          ),
+                          Container(
+                            height: mqs.height > 800
+                                ? mqs.height * 0.75
+                                : mqs.height * 0.73,
+                            width: mqs.width,
+                            alignment: Alignment.topCenter,
+                            decoration: BoxDecoration(
+                              boxShadow: [
+                                BoxShadow(
+                                  blurRadius: 15,
+                                  color: Colors.black12,
+                                  offset: Offset(-2, -2),
+                                  spreadRadius: 2,
+                                ),
+                              ],
+                              color: Colors.white,
+                              borderRadius: BorderRadius.only(
+                                topRight: Radius.circular(50),
+                                topLeft: Radius.circular(50),
                               ),
                             ),
-                            Container(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 5),
-                              height: (mqs.height > 800
-                                      ? mqs.height * 0.75
-                                      : mqs.height * 0.73) *
-                                  0.9,
-                              child: _selectedItem == null
-                                  ? aboutUs(context)
-                                  : Column(
-                                      children: [
-                                        Padding(
-                                          padding:
-                                              const EdgeInsets.only(left: 10.0),
-                                          child: Align(
-                                            alignment: Alignment.centerLeft,
-                                            child: Text(
-                                                services
-                                                    .servicesList[services
-                                                        .getServiceIndex(
-                                                            _selectedItem)]
-                                                    .serviceName,
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .headline5),
-                                          ),
-                                        ),
-                                        Container(
-                                          padding: EdgeInsets.symmetric(
-                                              horizontal: 10),
-                                          alignment: Alignment.center,
-                                          height: (mqs.height > 800
-                                                  ? mqs.height * 0.75
-                                                  : mqs.height * 0.73) *
-                                              0.2 *
-                                              0.6,
-                                          width: mqs.width,
-                                          child: Text(
-                                            services
-                                                .servicesList[
-                                                    services.getServiceIndex(
-                                                        _selectedItem)]
-                                                .serviceContent,
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodyText1,
-                                            textAlign: TextAlign.justify,
-                                          ),
-                                        ),
-                                        Container(
-                                          height: mqs.height > 800
-                                              ? mqs.height * 0.75 * 0.63
-                                              : mqs.height * 0.73 * 0.6,
-                                          child: ServiceList(
-                                            serviceId: _selectedItem,
-                                            widthRatio: services
-                                                .servicesList[
-                                                    services.getServiceIndex(
-                                                        _selectedItem)]
-                                                .widthRatio,
-                                          ),
-                                        ),
-                                        NavigationBar(
-                                          user: userProvider.user,
-                                          goToProfile: goToProfile,
-                                          setSelectedItem: setSelectedItem,
-                                          iconSize: iconSize,
-                                        ),
-                                      ],
+                            child: SingleChildScrollView(
+                              child: Column(
+                                children: [
+                                  Container(
+                                    height: (mqs.height > 800
+                                            ? mqs.height * 0.75
+                                            : mqs.height * 0.73) *
+                                        0.1,
+                                    child: ServicesIcons(
+                                      selectedItem: _selectedItem,
+                                      setSelectedItem: setSelectedItem,
+                                      iconSize: iconSize,
                                     ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 5),
+                                    height: (mqs.height > 800
+                                            ? mqs.height * 0.75
+                                            : mqs.height * 0.73) *
+                                        0.9,
+                                    child: _selectedItem == null
+                                        ? aboutUs(context)
+                                        : Column(
+                                            children: [
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                    left: 10.0),
+                                                child: Align(
+                                                  alignment:
+                                                      Alignment.centerLeft,
+                                                  child: Text(
+                                                      services
+                                                          .servicesList[services
+                                                              .getServiceIndex(
+                                                                  _selectedItem)]
+                                                          .serviceName,
+                                                      style: Theme.of(context)
+                                                          .textTheme
+                                                          .headline5),
+                                                ),
+                                              ),
+                                              Container(
+                                                padding: EdgeInsets.symmetric(
+                                                    horizontal: 10),
+                                                alignment: Alignment.center,
+                                                height: (mqs.height > 800
+                                                        ? mqs.height * 0.75
+                                                        : mqs.height * 0.73) *
+                                                    0.2 *
+                                                    0.6,
+                                                width: mqs.width,
+                                                child: AutoSizeText(
+                                                  services
+                                                      .servicesList[services
+                                                          .getServiceIndex(
+                                                              _selectedItem)]
+                                                      .serviceContent,
+                                                  maxLines: 2,
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.w500,
+                                                    fontSize: 20,
+                                                    color: Colors.black54,
+                                                  ),
+                                                  textAlign: TextAlign.center,
+                                                ),
+                                              ),
+                                              Container(
+                                                height: mqs.height > 800
+                                                    ? mqs.height * 0.75 * 0.63
+                                                    : mqs.height * 0.73 * 0.6,
+                                                child: ServiceList(
+                                                  serviceId: _selectedItem,
+                                                  widthRatio: services
+                                                      .servicesList[services
+                                                          .getServiceIndex(
+                                                              _selectedItem)]
+                                                      .widthRatio,
+                                                ),
+                                              ),
+                                              NavigationBar(
+                                                user: userProvider.user,
+                                                goToProfile: goToProfile,
+                                                setSelectedItem:
+                                                    setSelectedItem,
+                                                iconSize: iconSize,
+                                              ),
+                                            ],
+                                          ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-        },
-      ),
-    );
+                          ),
+                        ],
+                      );
+              },
+            ),
+          );
   }
 }
 
@@ -228,9 +293,9 @@ Widget aboutUs(BuildContext context) {
           style: Theme.of(context).textTheme.headline5,
         ),
         Divider(),
-        Text(
+        AutoSizeText(
           "We are Fotumania. We work with your imaginations to find a better match. Our Aim is to give an eye to your details and bring them into life within affordable segments . We offer a wide range of prices to fall into your budgets. We are flexible with Time and places. We give our best to coordinate with your kind of perfection. We are just a click away :)",
-          style: Theme.of(context).textTheme.bodyText1,
+          style: TextStyle(fontSize: 18, color: Colors.black54),
           textAlign: TextAlign.justify,
         ),
       ],

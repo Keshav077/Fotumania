@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart' hide UserInfo;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -25,6 +26,8 @@ class _AdminHomeState extends State<AdminHome> {
   UserInfo user;
   UserProvider userProvider;
 
+  var _showLoading = false;
+
   @override
   void didChangeDependencies() async {
     super.didChangeDependencies();
@@ -37,6 +40,7 @@ class _AdminHomeState extends State<AdminHome> {
       await Provider.of<ItemProvider>(context, listen: false)
           .fetchItemsFromServer();
       userProvider = Provider.of<UserProvider>(context, listen: false);
+      await userProvider.loadUser();
       user = userProvider.user;
       setState(
         () {
@@ -56,98 +60,155 @@ class _AdminHomeState extends State<AdminHome> {
         MediaQuery.of(context).size.height -
             MediaQuery.of(context).padding.top);
 
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Theme.of(context).primaryColor,
-            Theme.of(context).primaryColorDark,
-          ],
-          begin: Alignment.topRight,
-          end: Alignment.bottomLeft,
-        ),
-      ),
-      child: SafeArea(
-        child: Scaffold(
-            body: Container(
-          width: mqs.width,
-          height: mqs.height,
-          padding: EdgeInsets.symmetric(horizontal: mqs.height * 0.015),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Theme.of(context).primaryColor,
-                Theme.of(context).primaryColorDark,
-              ],
-              begin: Alignment.topRight,
-              end: Alignment.bottomLeft,
-            ),
-          ),
-          child: _isLoading
-              ? Center(
-                  child: CircularProgressIndicator(
-                    backgroundColor: Colors.white,
-                  ),
-                )
-              : Column(
-                  children: [
-                    Container(
-                      margin: EdgeInsets.symmetric(vertical: 10),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Container(
-                            child: Text(
-                              user.userName,
-                              style: Theme.of(context).textTheme.headline4,
-                            ),
-                          ),
-                          Spacer(),
-                          IconButton(
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (ctx) => Profile(user),
-                                ),
-                              );
-                            },
-                            icon: Icon(Icons.person),
-                          ),
-                          IconButton(
-                            onPressed: () async {
-                              await userProvider.logout();
-                            },
-                            icon: Icon(Icons.logout),
-                          ),
-                        ],
-                      ),
+    return !FirebaseAuth.instance.currentUser.emailVerified
+        ? Scaffold(
+            body: Center(
+              child: Container(
+                  width: mqs.width,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Theme.of(context).primaryColor,
+                        Theme.of(context).primaryColorDark
+                      ],
+                      begin: Alignment.topRight,
+                      end: Alignment.bottomLeft,
                     ),
-                    Container(
-                      padding: EdgeInsets.only(bottom: 10),
-                      child: Row(
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text("Please Verify Your Email",
+                          style: Theme.of(context).textTheme.headline6),
+                      SizedBox(height: 5),
+                      Text(FirebaseAuth.instance.currentUser.email,
+                          style: Theme.of(context).textTheme.subtitle1),
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          InkWell(
-                            onTap: () {
-                              Navigator.of(context).pushNamed(
-                                EditService.routeName,
-                              );
+                          ElevatedButton(
+                            child: Text("Resend"),
+                            onPressed: () async {
+                              setState(() {
+                                _showLoading = true;
+                              });
+                              await FirebaseAuth.instance.currentUser
+                                  .sendEmailVerification();
+                              setState(() {
+                                _showLoading = false;
+                              });
                             },
-                            child: tiles(
-                              mqs,
-                              "Edit/Add Service Info",
-                              context,
-                            ),
+                          ),
+                          SizedBox(
+                            width: 10,
+                          ),
+                          ElevatedButton(
+                            child: Text("Refresh"),
+                            onPressed: () async {
+                              await FirebaseAuth.instance.currentUser.reload();
+                              setState(() {});
+                            },
                           ),
                         ],
                       ),
-                    ),
-                    Expanded(child: AdminWorkSpace()),
-                  ],
+                      if (_showLoading) CircularProgressIndicator(),
+                    ],
+                  )),
+            ),
+          )
+        : Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Theme.of(context).primaryColor,
+                  Theme.of(context).primaryColorDark,
+                ],
+                begin: Alignment.topRight,
+                end: Alignment.bottomLeft,
+              ),
+            ),
+            child: SafeArea(
+              child: Scaffold(
+                  body: Container(
+                width: mqs.width,
+                height: mqs.height,
+                padding: EdgeInsets.symmetric(horizontal: mqs.height * 0.015),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Theme.of(context).primaryColor,
+                      Theme.of(context).primaryColorDark,
+                    ],
+                    begin: Alignment.topRight,
+                    end: Alignment.bottomLeft,
+                  ),
                 ),
-        )),
-      ),
-    );
+                child: _isLoading
+                    ? Center(
+                        child: CircularProgressIndicator(
+                          backgroundColor: Colors.white,
+                        ),
+                      )
+                    : Column(
+                        children: [
+                          Container(
+                            margin: EdgeInsets.symmetric(vertical: 10),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Container(
+                                  child: Text(
+                                    user.userName,
+                                    style:
+                                        Theme.of(context).textTheme.headline4,
+                                  ),
+                                ),
+                                Spacer(),
+                                IconButton(
+                                  onPressed: () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (ctx) => Profile(user),
+                                      ),
+                                    );
+                                  },
+                                  icon: Icon(Icons.person),
+                                ),
+                                IconButton(
+                                  onPressed: () async {
+                                    await userProvider.logout(context);
+                                  },
+                                  icon: Icon(Icons.logout),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            padding: EdgeInsets.only(bottom: 10),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                InkWell(
+                                  onTap: () {
+                                    Navigator.of(context).pushNamed(
+                                      EditService.routeName,
+                                    );
+                                  },
+                                  child: tiles(
+                                    mqs,
+                                    "Edit/Add Service Info",
+                                    context,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Expanded(child: AdminWorkSpace()),
+                        ],
+                      ),
+              )),
+            ),
+          );
   }
 }
 

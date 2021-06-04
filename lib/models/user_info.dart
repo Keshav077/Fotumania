@@ -1,4 +1,4 @@
-enum UserType { Admin, ServiceProvider, Customer, NotAUser }
+enum UserType { Admin, ServiceProvider, Customer }
 
 class UserInfo {
   final String userId;

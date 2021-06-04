@@ -12,16 +12,44 @@ class OrderProvider with ChangeNotifier {
     return [..._orders];
   }
 
+  Future<void> fetchAllOrders() async {
+    _orders = [];
+    Uri url = Uri.parse(
+        "https://fotumania-33638-default-rtdb.firebaseio.com/users.json");
+    final response = await http.get(url);
+    final extracted = json.decode(response.body) as Map<String, dynamic>;
+    extracted.forEach((userId, value) {
+      final orders = extracted[userId]['orders'] as Map<String, dynamic>;
+      if (orders != null) {
+        print(orders);
+        orders.forEach((orderId, orderData) {
+          _orders.add(OrderInfo(
+            providerId: orderData['providerId'],
+            orderId: orderId,
+            orderInfo: orderData['orderInfo'],
+            userId: userId,
+            orderDate: DateTime.parse(orderData['orderDate']),
+            orderStatus: getOrderStatusFromJson(orderData['orderStatus']),
+          ));
+        });
+      }
+    });
+    print(_orders);
+    notifyListeners();
+  }
+
   Future<void> setRatings(String id, String userId, double ratings) async {
     try {
       final index = _orders.indexWhere((element) => element.orderId == id);
       Uri url = Uri.parse(
           "https://fotumania-33638-default-rtdb.firebaseio.com/users/$userId/orders/$id/orderInfo.json");
-      await http.put(
+      final response = await http.patch(
         url,
-        body: {'ratings': ratings.toString()},
+        body: json.encode({'ratings': ratings.toString()}),
       );
+      print(json.decode(response.body));
       _orders[index].orderInfo['ratings'] = ratings.toString();
+      print(_orders[index].orderInfo['ratings']);
       notifyListeners();
     } catch (error) {
       print(error);
@@ -36,8 +64,8 @@ class OrderProvider with ChangeNotifier {
     try {
       Uri url = Uri.parse(
           "https://fotumania-33638-default-rtdb.firebaseio.com/users/$userId/orders/$orderId.json");
-      final response =
-          await http.patch(url, body: json.encode({"orderStatus": "1"}));
+      final response = await http.patch(url,
+          body: json.encode({"orderStatus": "1", 'providerId': providerId}));
       if (response.statusCode >= 400) throw Exception("Couldn't send request!");
       for (int i = 0; i < _orders.length; i++) {
         if (_orders[i].orderId == orderId) {
@@ -117,6 +145,7 @@ class OrderProvider with ChangeNotifier {
   }
 
   Future<void> fetchAndSetOrders() async {
+    _orders = [];
     try {
       Uri url = Uri.parse(
           "https://fotumania-33638-default-rtdb.firebaseio.com/users/${FirebaseAuth.instance.currentUser.uid}/orders.json");
@@ -128,9 +157,10 @@ class OrderProvider with ChangeNotifier {
       }
       extractedData.forEach((orderId, orderData) {
         loadedOrders.add(OrderInfo(
+          providerId: orderData['providerId'],
           orderId: orderId,
           orderInfo: orderData["orderInfo"],
-          userId: orderData["userId"],
+          userId: FirebaseAuth.instance.currentUser.uid,
           orderDate: DateTime.parse(orderData["orderDate"]),
           orderStatus: getOrderStatusFromJson(orderData["orderStatus"]),
         ));

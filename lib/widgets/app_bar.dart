@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fotumania/models/user_info.dart';
 import 'package:fotumania/providers/user_provider.dart';
-import 'package:fotumania/screens/order_status.dart';
 import 'package:provider/provider.dart';
 
 class CustomAppBar extends StatelessWidget {
@@ -56,12 +55,12 @@ class CustomAppBar extends StatelessWidget {
                       ),
                     ),
                     InkWell(
-                      onTap: () {
-                        Navigator.of(context)
-                            .pushNamed(OrderStatusScreen.routeName);
+                      onTap: () async {
+                        await Provider.of<UserProvider>(context, listen: false)
+                            .logout(context);
                       },
                       child: Icon(
-                        Icons.local_shipping,
+                        Icons.logout,
                         size: iconSize,
                       ),
                     )

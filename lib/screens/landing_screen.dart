@@ -33,8 +33,7 @@ class LandingScreen extends StatelessWidget {
   }
 
   void nextPage(UserType selectedUser, BuildContext context) {
-    Navigator.of(context)
-        .push(MaterialPageRoute(builder: (ctx) => SignIn(selectedUser)));
+    Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => SignIn()));
   }
 
   @override

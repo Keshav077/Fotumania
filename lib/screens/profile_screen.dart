@@ -36,7 +36,7 @@ class _ProfileState extends State<Profile> {
   bool _isLoading = false;
 
   @override
-  void didChangeDependencies() {
+  void didChangeDependencies() async {
     super.didChangeDependencies();
     if (!_isInit) {
       name = TextEditingController(text: widget.user.userName);
@@ -47,15 +47,14 @@ class _ProfileState extends State<Profile> {
       photographersProvider =
           Provider.of<PhotographersProvider>(context, listen: false);
       mqs = MediaQuery.of(context).size;
-      if (widget.user.userType == UserType.ServiceProvider) {
-        photographerDetails =
-            photographersProvider.getPhotographerWithId(widget.user.userId);
+      await userProvider.loadUser();
+      // if (widget.user.userType == UserType.ServiceProvider) {
+      //   photographerDetails =
+      //       photographersProvider.getPhotographerWithId(widget.user.userId);
 
-        pricePerHour =
-            TextEditingController(text: photographerDetails.pricePerHour);
-        specialization = TextEditingController(
-            text: photographerDetails.specialization.join(', '));
-      }
+      //   specialization = TextEditingController(
+      //       text: photographerDetails.specialization.join(', '));
+      // }
       _isInit = true;
     }
   }
@@ -154,11 +153,6 @@ class _ProfileState extends State<Profile> {
                   Column(
                     children: [
                       DisplayUserInfo(
-                        "Price per hour",
-                        pricePerHour,
-                        _editable,
-                      ),
-                      DisplayUserInfo(
                         "Specialization",
                         specialization,
                         _editable,
@@ -221,12 +215,12 @@ class _ProfileState extends State<Profile> {
                               name: name.text,
                               contact: contact.text,
                             );
-                            if (photographerDetails != null)
-                              photographersProvider.editPhotographerDetails(
-                                id: widget.user.userId,
-                                pricePerHour: pricePerHour.text,
-                                specialization: specialization.text,
-                              );
+                            // if (photographerDetails != null)
+                            //   photographersProvider.editPhotographerDetails(
+                            //     id: widget.user.userId,
+                            //     pricePerHour: pricePerHour.text,
+                            //     specialization: specialization.text,
+                            //   );
                             setState(() {
                               _isLoading = false;
                             });

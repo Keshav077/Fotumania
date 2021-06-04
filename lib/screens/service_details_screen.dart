@@ -1,12 +1,13 @@
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:location/location.dart';
 import 'package:provider/provider.dart';
-import 'package:toast/toast.dart';
 import 'package:twilio_flutter/twilio_flutter.dart';
 
 import 'package:fotumania/providers/order_provider.dart';
@@ -86,16 +87,29 @@ class _ServiceDetailsState extends State<ServiceDetails> {
                       margin: EdgeInsets.all(10),
                       child: CarouselSlider(
                         items: [
-                          ...serviceClass['carouselImages'].split(',').map(
-                                (e) => Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10),
-                                    image: DecorationImage(
-                                        image: NetworkImage(e),
-                                        fit: BoxFit.cover),
+                          if (serviceClass['carouselImages'] != null)
+                            ...serviceClass['carouselImages'].split(',').map(
+                                  (e) => Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10),
+                                      image: DecorationImage(
+                                          image: NetworkImage(e),
+                                          fit: BoxFit.cover),
+                                    ),
                                   ),
-                                ),
+                                )
+                          else
+                            Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                color: Colors.white,
                               ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                "Sample Images",
+                                style: TextStyle(color: Colors.black),
+                              ),
+                            )
                         ],
                         options: CarouselOptions(
                           aspectRatio: 9 / 16,
@@ -139,11 +153,12 @@ class _ServiceDetailsState extends State<ServiceDetails> {
                             SizedBox(
                               height: 10,
                             ),
-                            Text(
+                            AutoSizeText(
                               item.content,
                               maxLines: 2,
                               textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.headline5,
+                              style:
+                                  TextStyle(fontSize: 25, color: Colors.black),
                             ),
                             Divider(),
                             Container(
@@ -266,13 +281,9 @@ class _ServiceDetailsState extends State<ServiceDetails> {
                                                             listen: false)
                                                         .user
                                                         .userId);
-                                            Toast.show(
-                                              "Booking Successful",
-                                              context,
-                                              duration: Toast.LENGTH_SHORT,
-                                              gravity: Toast.BOTTOM,
+                                            Fluttertoast.showToast(
+                                              msg: "Booking Successful",
                                               backgroundColor: Colors.green,
-                                              backgroundRadius: 5,
                                             );
                                             // sendSms(
                                             //   "+918522822026",
@@ -285,13 +296,9 @@ class _ServiceDetailsState extends State<ServiceDetails> {
                                             //       "\nThank you for choosing Fotumania\n- Team Fotumania",
                                             // );
                                           } catch (error) {
-                                            Toast.show(
-                                              "Booking Failed",
-                                              context,
-                                              duration: Toast.LENGTH_SHORT,
-                                              gravity: Toast.BOTTOM,
+                                            Fluttertoast.showToast(
+                                              msg: "Booking Failed",
                                               backgroundColor: Colors.red,
-                                              backgroundRadius: 5,
                                             );
                                           }
                                           Navigator.of(context).pop();

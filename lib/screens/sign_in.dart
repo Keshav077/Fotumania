@@ -1,8 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_icons/flutter_icons.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:fotumania/exception/user_name_exists.dart';
+import 'package:fotumania/providers/photographers_provider.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/user_provider.dart';
@@ -14,14 +14,14 @@ import './photographer_screen.dart';
 import './home_screen.dart';
 
 class SignIn extends StatefulWidget {
-  final UserType _suserType;
-  SignIn(this._suserType);
+  static final routeName = "/sign-in";
   @override
   _SignInState createState() => _SignInState();
 }
 
 class _SignInState extends State<SignIn> with TickerProviderStateMixin {
   bool showSignin = true;
+  UserType userType;
 
   var _formKey = GlobalKey<FormState>();
 
@@ -128,63 +128,64 @@ class _SignInState extends State<SignIn> with TickerProviderStateMixin {
                               width: mqs.width,
                               child: Form(
                                 key: _formKey,
-                                child: Column(
-                                  children: [
-                                    inputField(
-                                      context: context,
-                                      controller: _emailController,
-                                      validator: (value) =>
-                                          value.toString().contains('@')
-                                              ? null
-                                              : "Invalid Email",
-                                      label: "Email",
-                                      icon: Icons.person_rounded,
-                                    ),
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          flex: 4,
-                                          child: inputField(
-                                            context: context,
-                                            controller: _passwordController,
-                                            validator: (value) =>
-                                                value.length < 6
-                                                    ? "Invalid Password"
-                                                    : null,
-                                            label: "Password",
-                                            obs: true,
-                                            icon: Icons.stars_sharp,
+                                child: SingleChildScrollView(
+                                  child: Column(
+                                    children: [
+                                      inputField(
+                                        context: context,
+                                        controller: _emailController,
+                                        validator: (value) =>
+                                            value.toString().contains('@')
+                                                ? null
+                                                : "Invalid Email",
+                                        label: "Email",
+                                        icon: Icons.person_rounded,
+                                      ),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            flex: 4,
+                                            child: inputField(
+                                              context: context,
+                                              controller: _passwordController,
+                                              validator: (value) =>
+                                                  value.length < 6
+                                                      ? "Invalid Password"
+                                                      : null,
+                                              label: "Password",
+                                              obs: true,
+                                              icon: Icons.stars_sharp,
+                                            ),
                                           ),
-                                        ),
-                                        SizedBox(
-                                          width: 10,
-                                        ),
-                                        Expanded(
-                                          child: InkWell(
-                                            onTap: () async {
-                                              if (_formKey.currentState
-                                                  .validate()) {
-                                                setState(() {
-                                                  _isLoading = true;
-                                                });
-                                                try {
-                                                  UserType userType =
-                                                      await userProvider
-                                                          .loginWithEmailAndPassword(
-                                                              _emailController
-                                                                  .text,
-                                                              _passwordController
-                                                                  .text);
-                                                  if (!FirebaseAuth
-                                                      .instance
-                                                      .currentUser
-                                                      .emailVerified) {
-                                                    Fluttertoast.showToast(
-                                                        msg:
-                                                            "Please Verify Your Email",
-                                                        backgroundColor:
-                                                            Colors.blue);
-                                                  } else {
+                                          SizedBox(
+                                            width: 10,
+                                          ),
+                                          Expanded(
+                                            child: InkWell(
+                                              onTap: () async {
+                                                if (_formKey.currentState
+                                                    .validate()) {
+                                                  setState(() {
+                                                    _isLoading = true;
+                                                  });
+                                                  try {
+                                                    UserType userType =
+                                                        await userProvider
+                                                            .loginWithEmailAndPassword(
+                                                                _emailController
+                                                                    .text,
+                                                                _passwordController
+                                                                    .text);
+                                                    // if (!FirebaseAuth
+                                                    //     .instance
+                                                    //     .currentUser
+                                                    //     .emailVerified) {
+                                                    //   Fluttertoast.showToast(
+                                                    //       msg:
+                                                    //           "Please Verify Your Email",
+                                                    //       backgroundColor:
+                                                    //           Colors.blue);
+                                                    // } else {
                                                     switch (userType) {
                                                       case UserType.Admin:
                                                         Navigator.of(context)
@@ -207,49 +208,47 @@ class _SignInState extends State<SignIn> with TickerProviderStateMixin {
                                                               .routeName,
                                                         );
                                                         break;
-                                                      case UserType.NotAUser:
-                                                        break;
                                                     }
-                                                  }
-                                                } on UserNotFound catch (err) {
-                                                  Fluttertoast.showToast(
-                                                      msg: err.message,
-                                                      backgroundColor:
-                                                          Colors.red);
-                                                } catch (error) {
-                                                  if (this.mounted)
+                                                    //}
+                                                  } on UserNotFound catch (err) {
                                                     Fluttertoast.showToast(
-                                                        msg:
-                                                            "Something went wrong!",
+                                                        msg: err.message,
                                                         backgroundColor:
-                                                            Colors.blue);
-                                                } finally {
-                                                  if (this.mounted)
-                                                    setState(() {
-                                                      _isLoading = false;
-                                                    });
+                                                            Colors.red);
+                                                  } catch (error) {
+                                                    if (this.mounted)
+                                                      Fluttertoast.showToast(
+                                                          msg:
+                                                              "Something went wrong!",
+                                                          backgroundColor:
+                                                              Colors.blue);
+                                                  } finally {
+                                                    if (this.mounted)
+                                                      setState(() {
+                                                        _isLoading = false;
+                                                      });
+                                                  }
                                                 }
-                                              }
-                                            },
-                                            child: Container(
-                                              alignment: Alignment.center,
-                                              margin: EdgeInsets.only(
-                                                  top: mqs.width * 0.04),
-                                              height: mqs.width * 0.125,
-                                              decoration: BoxDecoration(
-                                                color: Theme.of(context)
-                                                    .primaryColor,
-                                                borderRadius:
-                                                    BorderRadius.circular(50),
+                                              },
+                                              child: Container(
+                                                alignment: Alignment.center,
+                                                margin: EdgeInsets.only(
+                                                    top: mqs.width * 0.04),
+                                                height: mqs.width * 0.125,
+                                                decoration: BoxDecoration(
+                                                  color: Theme.of(context)
+                                                      .primaryColor,
+                                                  borderRadius:
+                                                      BorderRadius.circular(50),
+                                                ),
+                                                child: Icon(
+                                                    Icons.arrow_forward_ios),
                                               ),
-                                              child:
-                                                  Icon(Icons.arrow_forward_ios),
                                             ),
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                    if (widget._suserType != UserType.Admin)
+                                        ],
+                                      ),
+                                      // if (widget._suserType != UserType.Admin)
                                       InkWell(
                                         onTap: () {
                                           setState(
@@ -277,355 +276,429 @@ class _SignInState extends State<SignIn> with TickerProviderStateMixin {
                                           ),
                                         ),
                                       ),
-                                    if (widget._suserType == UserType.Admin)
-                                      SizedBox(
-                                        height: mqs.width * 0.04,
-                                      ),
-                                    Container(
-                                      margin: EdgeInsets.symmetric(
-                                        horizontal: mqs.height * 0.01,
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          Expanded(
-                                            child: Divider(
-                                              thickness: 3,
-                                            ),
-                                          ),
-                                          Container(
-                                            margin: EdgeInsets.symmetric(
-                                                horizontal: 20),
-                                            child: Text(
-                                              "or",
-                                              style: TextStyle(
-                                                  color: Colors.grey[400],
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 20),
-                                            ),
-                                          ),
-                                          Expanded(
-                                            child: Divider(
-                                              thickness: 3,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Container(
-                                      margin: EdgeInsets.only(
-                                          top: mqs.height * 0.02),
-                                      child: Row(
-                                        children: [
-                                          Expanded(
-                                            child: Container(
-                                              height: mqs.height * 0.06,
-                                              decoration: BoxDecoration(
-                                                color: Theme.of(context)
-                                                    .primaryColor,
-                                                borderRadius:
-                                                    BorderRadius.circular(50),
-                                              ),
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  Icon(FontAwesome.facebook),
-                                                  SizedBox(
-                                                    width: 10,
-                                                  ),
-                                                  Text("Sign in with Facebook"),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                          SizedBox(
-                                            width: 10,
-                                          ),
-                                          Expanded(
-                                            child: Container(
-                                              height: mqs.height * 0.06,
-                                              decoration: BoxDecoration(
-                                                color: Theme.of(context)
-                                                    .primaryColor,
-                                                borderRadius:
-                                                    BorderRadius.circular(50),
-                                              ),
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  Icon(FontAwesome.google),
-                                                  SizedBox(
-                                                    width: 10,
-                                                  ),
-                                                  Text("Sign in with Google"),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
+                                      // if (widget._suserType == UserType.Admin)
+                                      //   SizedBox(
+                                      //     height: mqs.width * 0.04,
+                                      //   ),
+                                      // Container(
+                                      //   margin: EdgeInsets.symmetric(
+                                      //     horizontal: mqs.height * 0.01,
+                                      //   ),
+                                      //   child: Row(
+                                      //     children: [
+                                      //       Expanded(
+                                      //         child: Divider(
+                                      //           thickness: 3,
+                                      //         ),
+                                      //       ),
+                                      //       Container(
+                                      //         margin: EdgeInsets.symmetric(
+                                      //             horizontal: 20),
+                                      //         child: Text(
+                                      //           "or",
+                                      //           style: TextStyle(
+                                      //               color: Colors.grey[400],
+                                      //               fontWeight: FontWeight.bold,
+                                      //               fontSize: 20),
+                                      //         ),
+                                      //       ),
+                                      //       Expanded(
+                                      //         child: Divider(
+                                      //           thickness: 3,
+                                      //         ),
+                                      //       ),
+                                      //     ],
+                                      //   ),
+                                      // ),
+                                      // Container(
+                                      //   margin: EdgeInsets.only(
+                                      //       top: mqs.height * 0.02),
+                                      //   child: Row(
+                                      //     children: [
+                                      //       Expanded(
+                                      //         child: Container(
+                                      //           height: mqs.height * 0.06,
+                                      //           decoration: BoxDecoration(
+                                      //             color: Theme.of(context)
+                                      //                 .primaryColor,
+                                      //             borderRadius:
+                                      //                 BorderRadius.circular(50),
+                                      //           ),
+                                      //           child: Row(
+                                      //             mainAxisAlignment:
+                                      //                 MainAxisAlignment.center,
+                                      //             children: [
+                                      //               Icon(FontAwesome.facebook),
+                                      //               SizedBox(
+                                      //                 width: 10,
+                                      //               ),
+                                      //               Text(
+                                      //                   "Sign in with Facebook"),
+                                      //             ],
+                                      //           ),
+                                      //         ),
+                                      //       ),
+                                      //       SizedBox(
+                                      //         width: 10,
+                                      //       ),
+                                      //       Expanded(
+                                      //         child: Container(
+                                      //           height: mqs.height * 0.06,
+                                      //           decoration: BoxDecoration(
+                                      //             color: Theme.of(context)
+                                      //                 .primaryColor,
+                                      //             borderRadius:
+                                      //                 BorderRadius.circular(50),
+                                      //           ),
+                                      //           child: Row(
+                                      //             mainAxisAlignment:
+                                      //                 MainAxisAlignment.center,
+                                      //             children: [
+                                      //               Icon(FontAwesome.google),
+                                      //               SizedBox(
+                                      //                 width: 10,
+                                      //               ),
+                                      //               Text("Sign in with Google"),
+                                      //             ],
+                                      //           ),
+                                      //         ),
+                                      //       ),
+                                      //     ],
+                                      //   ),
+                                      // ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
                           ),
                         ],
                       )
-                    : Container(
-                        child: Column(
-                          children: [
-                            Container(
-                              height: mqs.height * 0.55,
-                            ),
-                            Expanded(
-                              child: Container(
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: mqs.width * 0.03),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.only(
-                                      topLeft: Radius.circular(25),
-                                      topRight: Radius.circular(25)),
+                    : userType == null
+                        ? Container(
+                            child: Column(
+                              children: [
+                                Container(
+                                  height: mqs.height * 0.55,
                                 ),
-                                child: Form(
-                                  key: _formKey,
-                                  child: SingleChildScrollView(
-                                    child: Column(
+                                Expanded(
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: mqs.width * 0.03),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.only(
+                                          topLeft: Radius.circular(25),
+                                          topRight: Radius.circular(25)),
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
-                                        inputField(
+                                        buildButton(
+                                          label: "Customer",
+                                          mqs: mqs,
                                           context: context,
-                                          controller: _sEmailController,
-                                          validator: (value) =>
-                                              value.toString().contains('@')
-                                                  ? null
-                                                  : "Invalid Email",
-                                          label: "Email",
-                                          icon: Icons.email,
+                                          image: AssetImage(
+                                              'assets/images/customer.jpg'),
+                                          onPressed: () {
+                                            setState(() {
+                                              userType = UserType.Customer;
+                                            });
+                                          },
                                         ),
-                                        inputField(
-                                          context: context,
-                                          controller: _sNameController,
-                                          validator: (value) =>
-                                              value.toString().length > 3
-                                                  ? null
-                                                  : "Invalid Username",
-                                          label: "Username",
-                                          icon: Icons.person_rounded,
-                                        ),
-                                        inputField(
-                                          context: context,
-                                          obs: true,
-                                          controller: _sPasswordController,
-                                          validator: (value) => value.length < 6
-                                              ? "Invalid Password"
-                                              : null,
-                                          label: "Password",
-                                          icon: Icons.lock_rounded,
-                                        ),
-                                        Row(
-                                          children: [
-                                            Expanded(
-                                              flex: 4,
-                                              child: inputField(
-                                                context: context,
-                                                obs: true,
-                                                controller:
-                                                    _sConfirmPasswordController,
-                                                validator: (value) => value !=
-                                                        _sPasswordController
-                                                            .text
-                                                    ? "Password doesn't match!"
-                                                    : null,
-                                                label: "Confirm Password",
-                                                icon: Icons.lock_rounded,
-                                              ),
-                                            ),
-                                            Expanded(
-                                              child: Container(
-                                                height: mqs.height * 0.06,
-                                                decoration: BoxDecoration(
-                                                  color: Theme.of(context)
-                                                      .primaryColor,
-                                                  borderRadius:
-                                                      BorderRadius.circular(50),
-                                                ),
-                                                margin: EdgeInsets.only(
-                                                    top: 25, left: 5),
-                                                alignment: Alignment.center,
-                                                child: IconButton(
-                                                  onPressed: () async {
-                                                    if (_formKey.currentState
-                                                        .validate()) {
-                                                      setState(() {
-                                                        _isLoading = true;
-                                                      });
-                                                      try {
-                                                        await userProvider
-                                                            .createUser(
-                                                          email:
-                                                              _sEmailController
-                                                                  .text,
-                                                          userName:
-                                                              _sNameController
-                                                                  .text,
-                                                          password:
-                                                              _sPasswordController
-                                                                  .text,
-                                                          userType:
-                                                              widget._suserType,
-                                                        );
-                                                      } catch (e) {
-                                                        // print(e.message);
-                                                        //
-                                                        Fluttertoast.showToast(
-                                                            msg: e.message,
-                                                            backgroundColor:
-                                                                Colors.red);
-                                                        // Toast.show(
-                                                        //     e.message, context,
-                                                        //     duration: 2);
-                                                      }
-                                                      setState(() {
-                                                        _isLoading = false;
-                                                        _sEmailController.text =
-                                                            '';
-                                                        _sNameController.text =
-                                                            '';
-                                                        _sPasswordController
-                                                            .text = '';
-                                                        _sConfirmPasswordController
-                                                            .text = '';
-                                                      });
-                                                      if (FirebaseAuth.instance
-                                                                  .currentUser !=
-                                                              null &&
-                                                          !FirebaseAuth
-                                                              .instance
-                                                              .currentUser
-                                                              .emailVerified) {
-                                                        setState(() {
-                                                          _confirmEmail = true;
-                                                        });
-                                                        await FirebaseAuth
-                                                            .instance
-                                                            .currentUser
-                                                            .sendEmailVerification();
-                                                        setState(() {
-                                                          _confirmEmail = false;
-                                                        });
-                                                      }
-                                                    } else
-                                                      Fluttertoast.showToast(
-                                                        msg: "Error Signing Up",
-                                                        backgroundColor:
-                                                            Colors.red,
-                                                      );
-                                                    // Toast.show(
-                                                    //     "Error Signing Up",
-                                                    //     context,
-                                                    //     backgroundColor:
-                                                    //         Colors.red);
-                                                  },
-                                                  icon: Icon(
-                                                    Icons.arrow_forward_ios,
-                                                    color: Colors.white,
-                                                  ),
-                                                ),
-                                              ),
-                                            )
-                                          ],
-                                        ),
-                                        Padding(
-                                          padding:
-                                              EdgeInsets.all(mqs.height * 0.02),
-                                          child: InkWell(
-                                            child: Text(
-                                                "Already Signed Up? Login Here!",
-                                                style: TextStyle(
-                                                  color: Theme.of(context)
-                                                      .primaryColor,
-                                                )),
-                                            onTap: () {
+                                        buildButton(
+                                            label: "Service Provider",
+                                            mqs: mqs,
+                                            context: context,
+                                            image: AssetImage(
+                                                'assets/images/photographer.jpg'),
+                                            onPressed: () {
                                               setState(() {
-                                                showSignin = true;
-                                                _sConfirmPasswordController
-                                                    .text = '';
-                                                _sPasswordController.text = '';
-                                                _sEmailController.text = '';
+                                                userType =
+                                                    UserType.ServiceProvider;
                                               });
-                                            },
-                                          ),
-                                        ),
-                                        // Row(
-                                        //   children: [
-                                        //     Expanded(
-                                        //       child: Container(
-                                        //         height: mqs.height * 0.06,
-                                        //         decoration: BoxDecoration(
-                                        //           color: Theme.of(context)
-                                        //               .primaryColor,
-                                        //           borderRadius:
-                                        //               BorderRadius.circular(
-                                        //                   50),
-                                        //         ),
-                                        //         child: Row(
-                                        //           mainAxisAlignment:
-                                        //               MainAxisAlignment
-                                        //                   .center,
-                                        //           children: [
-                                        //             Icon(FontAwesome
-                                        //                 .facebook),
-                                        //             SizedBox(
-                                        //               width: 10,
-                                        //             ),
-                                        //             Text(
-                                        //                 "Sign up with Facebook"),
-                                        //           ],
-                                        //         ),
-                                        //       ),
-                                        //     ),
-                                        //     SizedBox(
-                                        //       width: 10,
-                                        //     ),
-                                        //     Expanded(
-                                        //       child: Container(
-                                        //         height: mqs.height * 0.06,
-                                        //         decoration: BoxDecoration(
-                                        //           color: Theme.of(context)
-                                        //               .primaryColor,
-                                        //           borderRadius:
-                                        //               BorderRadius.circular(
-                                        //                   50),
-                                        //         ),
-                                        //         child: Row(
-                                        //           mainAxisAlignment:
-                                        //               MainAxisAlignment
-                                        //                   .center,
-                                        //           children: [
-                                        //             Icon(
-                                        //                 FontAwesome.google),
-                                        //             SizedBox(
-                                        //               width: 10,
-                                        //             ),
-                                        //             Text(
-                                        //                 "Sign up with Google"),
-                                        //           ],
-                                        //         ),
-                                        //       ),
-                                        //     ),
-                                        //   ],
-                                        // ),
+                                            }),
                                       ],
                                     ),
                                   ),
                                 ),
-                              ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
+                          )
+                        : Container(
+                            child: Column(
+                              children: [
+                                Container(
+                                  height: mqs.height * 0.55,
+                                ),
+                                Expanded(
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: mqs.width * 0.03),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.only(
+                                          topLeft: Radius.circular(25),
+                                          topRight: Radius.circular(25)),
+                                    ),
+                                    child: Form(
+                                      key: _formKey,
+                                      child: SingleChildScrollView(
+                                        child: Column(
+                                          children: [
+                                            inputField(
+                                              context: context,
+                                              controller: _sEmailController,
+                                              validator: (value) =>
+                                                  value.toString().contains('@')
+                                                      ? null
+                                                      : "Invalid Email",
+                                              label: "Email",
+                                              icon: Icons.email,
+                                            ),
+                                            inputField(
+                                              context: context,
+                                              controller: _sNameController,
+                                              validator: (value) =>
+                                                  value.toString().length > 3
+                                                      ? null
+                                                      : "Invalid Username",
+                                              label: "Username",
+                                              icon: Icons.person_rounded,
+                                            ),
+                                            inputField(
+                                              context: context,
+                                              obs: true,
+                                              controller: _sPasswordController,
+                                              validator: (value) =>
+                                                  value.length < 6
+                                                      ? "Invalid Password"
+                                                      : null,
+                                              label: "Password",
+                                              icon: Icons.lock_rounded,
+                                            ),
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  flex: 4,
+                                                  child: inputField(
+                                                    context: context,
+                                                    obs: true,
+                                                    controller:
+                                                        _sConfirmPasswordController,
+                                                    validator: (value) => value !=
+                                                            _sPasswordController
+                                                                .text
+                                                        ? "Password doesn't match!"
+                                                        : null,
+                                                    label: "Confirm Password",
+                                                    icon: Icons.lock_rounded,
+                                                  ),
+                                                ),
+                                                Expanded(
+                                                  child: Container(
+                                                    height: mqs.height * 0.06,
+                                                    decoration: BoxDecoration(
+                                                      color: Theme.of(context)
+                                                          .primaryColor,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              50),
+                                                    ),
+                                                    margin: EdgeInsets.only(
+                                                        top: 25, left: 5),
+                                                    alignment: Alignment.center,
+                                                    child: IconButton(
+                                                      onPressed: () async {
+                                                        if (_formKey
+                                                            .currentState
+                                                            .validate()) {
+                                                          setState(() {
+                                                            _isLoading = true;
+                                                          });
+                                                          try {
+                                                            String uid =
+                                                                await userProvider
+                                                                    .createUser(
+                                                              email:
+                                                                  _sEmailController
+                                                                      .text,
+                                                              userName:
+                                                                  _sNameController
+                                                                      .text,
+                                                              password:
+                                                                  _sPasswordController
+                                                                      .text,
+                                                              userType:
+                                                                  userType,
+                                                            );
+                                                            if (userType ==
+                                                                UserType
+                                                                    .ServiceProvider)
+                                                              await Provider.of<
+                                                                          PhotographersProvider>(
+                                                                      context,
+                                                                      listen:
+                                                                          false)
+                                                                  .createPhotographer(
+                                                                      uid);
+                                                          } catch (e) {
+                                                            print(e.message);
+
+                                                            Fluttertoast.showToast(
+                                                                msg: e.message,
+                                                                backgroundColor:
+                                                                    Colors.red);
+                                                          }
+                                                          setState(() {
+                                                            _isLoading = false;
+                                                            _sEmailController
+                                                                .text = '';
+                                                            _sNameController
+                                                                .text = '';
+                                                            _sPasswordController
+                                                                .text = '';
+                                                            _sConfirmPasswordController
+                                                                .text = '';
+                                                          });
+                                                          if (FirebaseAuth
+                                                                      .instance
+                                                                      .currentUser !=
+                                                                  null &&
+                                                              !FirebaseAuth
+                                                                  .instance
+                                                                  .currentUser
+                                                                  .emailVerified) {
+                                                            setState(() {
+                                                              _confirmEmail =
+                                                                  true;
+                                                            });
+                                                            await FirebaseAuth
+                                                                .instance
+                                                                .currentUser
+                                                                .sendEmailVerification();
+                                                            setState(() {
+                                                              _confirmEmail =
+                                                                  false;
+                                                            });
+                                                          }
+                                                        } else
+                                                          Fluttertoast
+                                                              .showToast(
+                                                            msg:
+                                                                "Error Signing Up",
+                                                            backgroundColor:
+                                                                Colors.red,
+                                                          );
+                                                        // Toast.show(
+                                                        //     "Error Signing Up",
+                                                        //     context,
+                                                        //     backgroundColor:
+                                                        //         Colors.red);
+                                                      },
+                                                      icon: Icon(
+                                                        Icons.arrow_forward_ios,
+                                                        color: Colors.white,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                )
+                                              ],
+                                            ),
+                                            Padding(
+                                              padding: EdgeInsets.all(
+                                                  mqs.height * 0.02),
+                                              child: InkWell(
+                                                child: Text(
+                                                    "Already Signed Up? Login Here!",
+                                                    style: TextStyle(
+                                                      color: Theme.of(context)
+                                                          .primaryColor,
+                                                    )),
+                                                onTap: () {
+                                                  setState(() {
+                                                    showSignin = true;
+                                                    userType = null;
+                                                    _emailController.text = '';
+                                                    _sConfirmPasswordController
+                                                        .text = '';
+                                                    _sPasswordController.text =
+                                                        '';
+                                                    _sEmailController.text = '';
+                                                  });
+                                                },
+                                              ),
+                                            ),
+                                            // Row(
+                                            //   children: [
+                                            //     Expanded(
+                                            //       child: Container(
+                                            //         height: mqs.height * 0.06,
+                                            //         decoration: BoxDecoration(
+                                            //           color: Theme.of(context)
+                                            //               .primaryColor,
+                                            //           borderRadius:
+                                            //               BorderRadius.circular(
+                                            //                   50),
+                                            //         ),
+                                            //         child: Row(
+                                            //           mainAxisAlignment:
+                                            //               MainAxisAlignment
+                                            //                   .center,
+                                            //           children: [
+                                            //             Icon(FontAwesome
+                                            //                 .facebook),
+                                            //             SizedBox(
+                                            //               width: 10,
+                                            //             ),
+                                            //             Text(
+                                            //                 "Sign up with Facebook"),
+                                            //           ],
+                                            //         ),
+                                            //       ),
+                                            //     ),
+                                            //     SizedBox(
+                                            //       width: 10,
+                                            //     ),
+                                            //     Expanded(
+                                            //       child: Container(
+                                            //         height: mqs.height * 0.06,
+                                            //         decoration: BoxDecoration(
+                                            //           color: Theme.of(context)
+                                            //               .primaryColor,
+                                            //           borderRadius:
+                                            //               BorderRadius.circular(
+                                            //                   50),
+                                            //         ),
+                                            //         child: Row(
+                                            //           mainAxisAlignment:
+                                            //               MainAxisAlignment
+                                            //                   .center,
+                                            //           children: [
+                                            //             Icon(
+                                            //                 FontAwesome.google),
+                                            //             SizedBox(
+                                            //               width: 10,
+                                            //             ),
+                                            //             Text(
+                                            //                 "Sign up with Google"),
+                                            //           ],
+                                            //         ),
+                                            //       ),
+                                            //     ),
+                                            //   ],
+                                            // ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
               ],
             ),
           ),
@@ -665,6 +738,35 @@ class _SignInState extends State<SignIn> with TickerProviderStateMixin {
       ],
     );
   }
+}
+
+Widget buildButton(
+    {Function onPressed,
+    String label,
+    Size mqs,
+    BuildContext context,
+    AssetImage image}) {
+  return Column(
+    children: [
+      InkWell(
+        onTap: onPressed,
+        child: Container(
+          margin: EdgeInsets.only(bottom: 5),
+          width: mqs.height * 0.2,
+          height: mqs.height * 0.2,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.white,
+            image: DecorationImage(image: image, fit: BoxFit.cover),
+          ),
+        ),
+      ),
+      Text(
+        label,
+        style: Theme.of(context).textTheme.headline5,
+      ),
+    ],
+  );
 }
 
 Widget inputField(

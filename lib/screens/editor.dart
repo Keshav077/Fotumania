@@ -623,10 +623,10 @@ class ClassDetails extends StatelessWidget {
                                     Theme.of(context).textTheme.subtitle1,
                               ),
                               controller: TextEditingController(
-                                text: itemData.classes[i][e].join('\n\n'),
+                                text: itemData.classes[i][e],
                               ),
                               onChanged: (value) =>
-                                  itemData.classes[i][e] = value.split('\n\n'),
+                                  itemData.classes[i][e] = value.split(','),
                             )
                           : TextField(
                               decoration: InputDecoration(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fotumania/models/order_info.dart';
 import 'package:fotumania/providers/order_provider.dart';
+import 'package:fotumania/providers/photographers_provider.dart';
 import 'package:fotumania/widgets/order_list.dart';
 import 'package:provider/provider.dart';
 import 'package:toast/toast.dart';
@@ -23,7 +24,7 @@ class _AdminWorkSpaceState extends State<AdminWorkSpace> {
       });
       try {
         await Provider.of<OrderProvider>(context, listen: false)
-            .fetchAndSetOrders();
+            .fetchAllOrders();
       } catch (error) {
         Toast.show("Error Loading... Please Refresh!", context,
             duration: 2, backgroundColor: Colors.red);
@@ -38,8 +39,9 @@ class _AdminWorkSpaceState extends State<AdminWorkSpace> {
 
   Future<void> _refreshPage(BuildContext context) async {
     try {
-      await Provider.of<OrderProvider>(context, listen: false)
-          .fetchAndSetOrders();
+      await Provider.of<OrderProvider>(context, listen: false).fetchAllOrders();
+      await Provider.of<PhotographersProvider>(context, listen: false)
+          .fetchAllPhotographers();
     } catch (error) {
       Toast.show(
         "Error Loading... Please Refresh!",
@@ -53,6 +55,7 @@ class _AdminWorkSpaceState extends State<AdminWorkSpace> {
   @override
   Widget build(BuildContext context) {
     Size mqs = MediaQuery.of(context).size;
+    print(show);
     return Container(
       // padding: EdgeInsets.all(15),
       child: RefreshIndicator(

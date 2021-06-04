@@ -5,11 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide UserInfo;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:fotumania/exception/user_name_exists.dart';
+import 'package:fotumania/screens/sign_in.dart';
 import 'package:http/http.dart' as http;
 import '../models/user_info.dart';
 
 class UserProvider with ChangeNotifier {
   UserInfo _currentUser;
+
+  List<UserInfo> _users;
 
   UserInfo get user {
     return UserInfo(
@@ -39,18 +42,43 @@ class UserProvider with ChangeNotifier {
         userType: getUserType(extracted['userType']),
         imageUrl: extracted['profileImageUrl'],
       );
+      // print(extracted);
+      // print(_currentUser.userType);
     } catch (error) {
       print(error);
     }
   }
 
-  // UserInfo getUserById(String id) {
-  //   return _users[_users.indexWhere((element) => element.userId == id)];
-  // }
+  Future<void> fetchAllUsers() async {
+    _users = [];
+    Uri url = Uri.parse(
+        'https://fotumania-33638-default-rtdb.firebaseio.com/users.json');
+    final response = await http.get(url);
+    final extracted = json.decode(response.body) as Map<String, dynamic>;
+    extracted.forEach((key, value) {
+      value = value as Map<String, dynamic>;
+      _users.add(UserInfo(
+        email: value['email'],
+        contact: value['contact'],
+        userId: value['userId'],
+        location: value['location'],
+        userName: value['userName'],
+        userType: getUserType(value['userType']),
+        imageUrl: value['profileImageUrl'],
+      ));
+    });
+    // print(extracted);
+    print(_users);
+  }
 
-  Future<void> logout() async {
+  UserInfo getUserById(String id) {
+    return _users[_users.indexWhere((element) => element.userId == id)];
+  }
+
+  Future<void> logout(BuildContext context) async {
     _currentUser = null;
     await FirebaseAuth.instance.signOut();
+    Navigator.of(context).pushReplacementNamed(SignIn.routeName);
     notifyListeners();
   }
 
@@ -76,7 +104,7 @@ class UserProvider with ChangeNotifier {
         userType: getUserType(extracted['userType']),
         imageUrl: extracted['profileImageUrl'],
       );
-      print(_currentUser);
+      // print(_currentUser);
       notifyListeners();
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
@@ -93,6 +121,7 @@ class UserProvider with ChangeNotifier {
     return _currentUser.userType;
   }
 
+  // ignore: missing_return
   UserType getUserType(String userType) {
     switch (userType) {
       case "UserType.Admin":
@@ -101,12 +130,10 @@ class UserProvider with ChangeNotifier {
         return UserType.Customer;
       case "UserType.ServiceProvider":
         return UserType.ServiceProvider;
-      default:
-        return UserType.NotAUser;
     }
   }
 
-  Future<void> createUser({
+  Future<String> createUser({
     String email,
     String userName,
     String password,
@@ -133,6 +160,7 @@ class UserProvider with ChangeNotifier {
           },
         ),
       );
+      return userCredential.user.uid;
     } catch (error) {
       throw UserNameExistsException(
           "You already have an account please login!");
@@ -142,30 +170,38 @@ class UserProvider with ChangeNotifier {
   Future editUserDetails(
       {File image, String name, String location, String contact}) async {
     try {
-      Reference firebaseStorageRef = FirebaseStorage.instance
-          .ref()
-          .child('profileImages/${_currentUser.userId}');
-      UploadTask uploadTask = firebaseStorageRef.putFile(image);
-      TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() => null);
-      String profileImageUrl = await taskSnapshot.ref.getDownloadURL();
+      String profileImageUrl;
+      if (image != null) {
+        Reference firebaseStorageRef = FirebaseStorage.instance
+            .ref()
+            .child('profileImages/${_currentUser.userId}');
+        UploadTask uploadTask = firebaseStorageRef.putFile(image);
+        TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() => null);
+        profileImageUrl = await taskSnapshot.ref.getDownloadURL();
+      }
       Uri url = Uri.parse(
           'https://fotumania-33638-default-rtdb.firebaseio.com/users/${_currentUser.userId}.json');
       final response = await http.patch(
         url,
         body: json.encode(
           {
-            'profileImageUrl': profileImageUrl,
-            'contact': contact,
-            'location': location,
-            'userName': name,
+            'profileImageUrl': profileImageUrl == null
+                ? _currentUser.imageUrl
+                : profileImageUrl,
+            'contact': contact == null ? _currentUser.contact : contact,
+            'location': location == null ? _currentUser.location : location,
+            'userName': name == null ? _currentUser.userName : name,
           },
         ),
       );
       if (response.statusCode >= 400) throw Exception();
-      _currentUser.imageUrl = profileImageUrl;
-      _currentUser.userName = name;
-      _currentUser.location = location;
-      _currentUser.contact = contact;
+      _currentUser.imageUrl =
+          profileImageUrl == null ? _currentUser.imageUrl : profileImageUrl;
+      _currentUser.userName = name == null ? _currentUser.userName : name;
+      _currentUser.location =
+          location == null ? _currentUser.location : location;
+      _currentUser.contact = contact == null ? _currentUser.contact : contact;
+      print(_currentUser.imageUrl);
       notifyListeners();
     } catch (error) {
       print(error);

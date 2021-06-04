@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fotumania/providers/photographers_provider.dart';
 import 'package:provider/provider.dart';
 
 import '../models/order_info.dart';
@@ -16,6 +17,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
   bool _isInit = false, _isLoading = false;
   OrderProvider orderProvider;
   UserProvider userProvider;
+  PhotographersProvider photographersProvider;
   LinearGradient gradient;
   Size mqs;
   @override
@@ -24,6 +26,8 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
     if (!_isInit) {
       orderProvider = Provider.of<OrderProvider>(context, listen: false);
       userProvider = Provider.of<UserProvider>(context, listen: false);
+      photographersProvider =
+          Provider.of<PhotographersProvider>(context, listen: false);
       mqs = MediaQuery.of(context).size;
       gradient = LinearGradient(
         colors: [
@@ -36,6 +40,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
       setState(() {
         _isLoading = true;
       });
+      await userProvider.fetchAllUsers();
       await orderProvider.fetchAndSetOrders();
       setState(() {
         _isLoading = false;
@@ -148,17 +153,20 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                                       Row(
                                         children: [
                                           Text("Status: "),
-                                          Text(
-                                            e.orderStatus == OrderStatus.Ordered
-                                                ? "Admin is looking for a suitable service provider"
-                                                : e.orderStatus ==
-                                                        OrderStatus.RequestSent
-                                                    ? "A request has been sent to the service provider"
-                                                    : e.orderStatus ==
-                                                            OrderStatus.Assigned
-                                                        ? "Your order has been assigned to"
-                                                        : "Service Completed",
-                                          ),
+                                          e.orderStatus == OrderStatus.Ordered
+                                              ? Text(
+                                                  "Admin is looking for a suitable service provider")
+                                              : e.orderStatus ==
+                                                      OrderStatus.RequestSent
+                                                  ? Text(
+                                                      "A request has been sent to the service provider")
+                                                  : e.orderStatus ==
+                                                          OrderStatus.Assigned
+                                                      ? Text(
+                                                          "Your order has been assigned to ${userProvider.getUserById(e.providerId).userName}")
+                                                      : Text(
+                                                          "Service Completed",
+                                                        ),
                                         ],
                                       ),
                                     ],

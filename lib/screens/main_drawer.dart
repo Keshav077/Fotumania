@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:fotumania/providers/user_provider.dart';
+import 'package:fotumania/screens/feedback.dart';
 import 'package:fotumania/screens/order_status.dart';
 import 'package:fotumania/screens/recent_orders.dart';
-
-import 'package:provider/provider.dart';
 
 class MainDrawer extends StatelessWidget {
   @override
@@ -53,20 +51,26 @@ class MainDrawer extends StatelessWidget {
                 title: Text("Recent Orders"),
               ),
               ListTile(
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (ctx) {
+                        return FeedBack();
+                      },
+                    ),
+                  );
+                },
                 leading: Icon(Icons.feedback_outlined),
                 title: Text("Feedback"),
               ),
               ListTile(
+                onTap: () {},
+                leading: Icon(Icons.rate_review),
+                title: Text("Reviwes"),
+              ),
+              ListTile(
                 title: Text("Support"),
               ),
-              ElevatedButton(
-                  onPressed: () {
-                    Provider.of<UserProvider>(
-                      context,
-                      listen: false,
-                    ).logout();
-                  },
-                  child: Text("Logout"))
             ],
           ),
         ],
